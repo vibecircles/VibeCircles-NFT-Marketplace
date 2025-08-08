@@ -32,7 +32,7 @@ const About: NextPage = () => {
             uniqueness and authenticity.
           </p>
           <p className="text-black/70 text-lg leading-relaxed">
-            We're not just selling NFTs – we're curating experiences, emotions, and connections 
+            We&apos;re not just selling NFTs – we&apos;re curating experiences, emotions, and connections 
             through art that speaks to the soul. Each VibeCircle is crafted with intention, 
             designed to resonate with collectors who appreciate the extraordinary.
           </p>
@@ -174,7 +174,7 @@ const About: NextPage = () => {
         </h2>
         <p className="text-black/70 text-lg mb-8 max-w-2xl mx-auto">
           Have questions about VibeCircles? Want to learn more about our collection? 
-          We'd love to hear from you and help you discover your perfect NFT.
+          We&apos;d love to hear from you and help you discover your perfect NFT.
         </p>
         <div className="flex justify-center gap-6">
           <a
@@ -197,4 +197,4 @@ const About: NextPage = () => {
   );
 };
 
-export default About; 
+export default About;
