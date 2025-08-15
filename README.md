@@ -1,65 +1,27 @@
-> [!Important]  
-> This repository is outdated and no longer maintained. But we have something better for you!
->
-> Head over to this new repository: [marketplace-template](https://github.com/thirdweb-example/marketplace-template)
-> 
-> The new marketplace template now comes with support for multiple chains and collections
-> 
+---
+icon: hand-wave
+layout:
+  width: default
+  title:
+    visible: true
+  description:
+    visible: false
+  tableOfContents:
+    visible: true
+  outline:
+    visible: true
+  pagination:
+    visible: true
+  metadata:
+    visible: true
+---
 
-# NFT Marketplace V3
+# Welcome
 
-Create an NFT marketplace on top of your NFT collection on **any** EVM-compatible blockchain.
+Welcome to the GitBook starter template! Here you'll get an overview of all the amazing features GitBook offers to help you build beautiful, interactive documentation.
 
-### Features
+You'll see some of the best parts of GitBook in action — and find help on how you can turn this template into your own.
 
-- List multiple collections into an aggregated marketplace
-- Customize branding and theme to your application
+### Jump right in
 
-## Installation
-
-Install via [thirdweb create](https://portal.thirdweb.com/cli/create)
-
-```bash
-npx thirdweb create --template marketplace-v3
-```
-
-## Environment Variables
-
-To run this project, you will need to add environment variables. Check the `.env.example` file for all the environment variables required and add it to `.env.local` file or set them up on your hosting provider.
-
-## Run Locally
-
-Install dependencies
-
-```bash
-  # npm
-  npm install
-
-  # yarn
-  yarn install
-```
-
-Start the server
-
-```bash
-  # npm
-  npm run dev
-
-  # yarn
-  yarn dev
-```
-
-## Additional Resources
-
--   [Documentation](https://portal.thirdweb.com)
--   [Templates](https://thirdweb.com/templates)
--   [Video Tutorials](https://youtube.com/thirdweb_)
--   [Blog](https://blog.thirdweb.com)
-
-## Contributing
-
-Contributions and [feedback](https://feedback.thirdweb.com) are always welcome! Please check our [open source page](https://thirdweb.com/open-source) for more information.
-
-## Need help?
-
-For help, please visit our [support site](https://support.thirdweb.com).
+<table data-view="cards"><thead><tr><th></th><th></th><th></th><th data-hidden data-card-cover data-type="files"></th><th data-hidden></th><th data-hidden data-card-target data-type="content-ref"></th></tr></thead><tbody><tr><td><h4><i class="fa-bolt">:bolt:</i></h4></td><td><strong>Quickstart</strong></td><td>Create your first site</td><td></td><td></td><td><a href="getting-started/quickstart.md">quickstart.md</a></td></tr><tr><td><h4><i class="fa-leaf">:leaf:</i></h4></td><td><strong>Editor basics</strong></td><td>Learn the basics of GitBook</td><td></td><td></td><td><a href="https://github.com/GitbookIO/gitbook-templates/blob/main/product-docs/broken-reference/README.md">https://github.com/GitbookIO/gitbook-templates/blob/main/product-docs/broken-reference/README.md</a></td></tr><tr><td><h4><i class="fa-globe-pointer">:globe-pointer:</i></h4></td><td><strong>Publish your docs</strong></td><td>Share your docs online</td><td></td><td></td><td><a href="getting-started/publish-your-docs.md">publish-your-docs.md</a></td></tr></tbody></table>
