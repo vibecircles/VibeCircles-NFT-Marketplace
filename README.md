@@ -40,8 +40,3 @@ Start the server
   # yarn
   yarn dev
 ```
-
-
-## Need help?
-
-For help, please visit our [support site](https://support.thirdweb.com).
