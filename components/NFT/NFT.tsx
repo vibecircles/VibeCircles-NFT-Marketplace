@@ -28,13 +28,15 @@ export default function NFTComponent({
   const [nft, setNFT] = useState(props.nft);
 
   useEffect(() => {
-    if (nft?.id !== tokenId) {
+    if (!nft || nft.id.toString() !== tokenId.toString()) {
       getNFT({
         contract: NFT_COLLECTION,
         tokenId: tokenId,
         includeOwner: true,
-      }).then((nft) => {
-        setNFT(nft);
+      }).then((fetchedNft) => {
+        setNFT(fetchedNft);
+      }).catch((error) => {
+        console.error("Error fetching NFT:", error);
       });
     }
   }, [tokenId, nft?.id]);

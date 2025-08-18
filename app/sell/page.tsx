@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { useActiveAccount, MediaRenderer } from "thirdweb/react";
 import NFTGrid, { NFTGridLoading } from "@/components/NFT/NFTGrid";
 import { NFT as NFTType } from "thirdweb";
-import { tokensOfOwner } from "thirdweb/extensions/erc721";
+import { tokensOfOwner, getNFT } from "thirdweb/extensions/erc721";
 import SaleInfo from "@/components/SaleInfo";
 import client from "@/lib/client";
 import { NFT_COLLECTION } from "@/const/contracts";
@@ -14,18 +14,41 @@ import { Cross1Icon } from "@radix-ui/react-icons";
 
 export default function Sell() {
 	const [loading, setLoading] = useState(false);
-	const [ownedTokenIds, setOwnedTokenIds] = useState<readonly bigint[]>([]);
+	const [ownedNfts, setOwnedNfts] = useState<NFTType[]>([]);
 	const [selectedNft, setSelectedNft] = useState<NFTType>();
 
 	const account = useActiveAccount();
 	useEffect(() => {
 		if (account) {
 			setLoading(true);
+			console.log("Fetching NFTs for account:", account.address);
 			tokensOfOwner({
 				contract: NFT_COLLECTION,
 				owner: account.address,
 			})
-				.then(setOwnedTokenIds)
+				.then(async (tokenIds) => {
+					console.log("Found token IDs:", tokenIds);
+					if (tokenIds.length === 0) {
+						console.log("No NFTs found for this account");
+						setOwnedNfts([]);
+						return;
+					}
+					// Fetch the actual NFT data for each owned token
+					const nftPromises = tokenIds.map((tokenId) =>
+						getNFT({
+							contract: NFT_COLLECTION,
+							tokenId: tokenId,
+							includeOwner: true,
+						}).catch((error) => {
+							console.error(`Error fetching NFT ${tokenId}:`, error);
+							return null;
+						})
+					);
+					const nfts = await Promise.all(nftPromises);
+					const validNfts = nfts.filter((nft) => nft !== null) as NFTType[];
+					console.log("Fetched NFTs:", validNfts);
+					setOwnedNfts(validNfts);
+				})
 				.catch((err) => {
 					toast.error(
 						"Something went wrong while fetching your NFTs!",
@@ -34,11 +57,13 @@ export default function Sell() {
 							style: toastStyle,
 						}
 					);
-					console.log(err);
+					console.error("Error fetching owned tokens:", err);
 				})
 				.finally(() => {
 					setLoading(false);
 				});
+		} else {
+			setOwnedNfts([]);
 		}
 	}, [account]);
 
@@ -52,8 +77,9 @@ export default function Sell() {
 							<NFTGridLoading />
 						) : (
 							<NFTGrid
-								nftData={ownedTokenIds.map((tokenId) => ({
-									tokenId,
+								nftData={ownedNfts.map((nft) => ({
+									tokenId: nft.id,
+									nft: nft,
 								}))}
 								overrideOnclickBehavior={(nft) => {
 									setSelectedNft(nft);
