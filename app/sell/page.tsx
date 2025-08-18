@@ -7,7 +7,7 @@ import { NFT as NFTType } from "thirdweb";
 import { tokensOfOwner, getNFT } from "thirdweb/extensions/erc721";
 import SaleInfo from "@/components/SaleInfo";
 import client from "@/lib/client";
-import { NFT_COLLECTION } from "@/const/contracts";
+import { NFT_COLLECTION, MARKETPLACE, NETWORK } from "@/const/contracts";
 import toast from "react-hot-toast";
 import toastStyle from "@/util/toastConfig";
 import { Cross1Icon } from "@radix-ui/react-icons";
@@ -23,6 +23,8 @@ export default function Sell() {
 			setLoading(true);
 			console.log("Fetching NFTs for account:", account.address);
 			console.log("NFT Collection address:", NFT_COLLECTION.address);
+			console.log("Marketplace address:", MARKETPLACE.address);
+			console.log("Network:", NETWORK);
 			console.log("Client ID available:", !!process.env.NEXT_PUBLIC_TEMPLATE_CLIENT_ID);
 			
 			// Test contract connection first
@@ -31,16 +33,25 @@ export default function Sell() {
 					// Try to get the contract name to test connection
 					const name = await NFT_COLLECTION.read({ functionName: "name" });
 					console.log("Contract name:", name);
+					
+					// Also test marketplace contract
+					try {
+						const marketplaceName = await MARKETPLACE.read({ functionName: "name" });
+						console.log("Marketplace name:", marketplaceName);
+					} catch (marketplaceError) {
+						console.error("Marketplace contract test failed:", marketplaceError);
+					}
+					
 					return true;
 				} catch (error) {
-					console.error("Contract connection test failed:", error);
+					console.error("NFT Contract connection test failed:", error);
 					return false;
 				}
 			};
 			
 			testContractConnection().then((isConnected) => {
 				if (!isConnected) {
-					toast.error("Cannot connect to NFT contract. Please check your network connection.", {
+					toast.error("Cannot connect to NFT contract. The contract might not exist at this address. Please check your contract deployment.", {
 						position: "bottom-center",
 						style: toastStyle,
 					});
@@ -48,18 +59,21 @@ export default function Sell() {
 					return;
 				}
 				
-				// Add more detailed error handling
-				tokensOfOwner({
-					contract: NFT_COLLECTION,
-					owner: account.address,
-				})
-					.then(async (tokenIds) => {
+				// Try to fetch owned tokens with better error handling
+				const fetchOwnedTokens = async () => {
+					try {
+						const tokenIds = await tokensOfOwner({
+							contract: NFT_COLLECTION,
+							owner: account.address,
+						});
 						console.log("Found token IDs:", tokenIds);
+						
 						if (tokenIds.length === 0) {
 							console.log("No NFTs found for this account");
 							setOwnedNfts([]);
 							return;
 						}
+						
 						// Fetch the actual NFT data for each owned token
 						const nftPromises = tokenIds.map((tokenId) =>
 							getNFT({
@@ -75,26 +89,48 @@ export default function Sell() {
 						const validNfts = nfts.filter((nft) => nft !== null) as NFTType[];
 						console.log("Fetched NFTs:", validNfts);
 						setOwnedNfts(validNfts);
-					})
-					.catch((err) => {
+					} catch (err: any) {
 						console.error("Detailed error fetching owned tokens:", {
 							error: err,
 							message: err.message,
-							stack: err.stack,
+							code: err.code,
+							data: err.data,
 							account: account.address,
 							contract: NFT_COLLECTION.address
 						});
-						toast.error(
-							"Something went wrong while fetching your NFTs!",
-							{
-								position: "bottom-center",
-								style: toastStyle,
-							}
-						);
-					})
-					.finally(() => {
-						setLoading(false);
-					});
+						
+						// Provide specific error messages based on the error
+						if (err.code === -32000) {
+							toast.error(
+								"Contract execution failed. The contract might not exist or be incompatible. Please check the contract address.",
+								{
+									position: "bottom-center",
+									style: toastStyle,
+								}
+							);
+						} else if (err.message?.includes("execution reverted")) {
+							toast.error(
+								"Contract call reverted. This might be due to an incompatible contract or network issues.",
+								{
+									position: "bottom-center",
+									style: toastStyle,
+								}
+							);
+						} else {
+							toast.error(
+								"Something went wrong while fetching your NFTs!",
+								{
+									position: "bottom-center",
+									style: toastStyle,
+								}
+							);
+						}
+					}
+				};
+				
+				fetchOwnedTokens().finally(() => {
+					setLoading(false);
+				});
 			});
 		} else {
 			setOwnedNfts([]);
