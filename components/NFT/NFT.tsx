@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState } from "react";
 import { NFT } from "thirdweb";
 import { NFT_COLLECTION } from "../../const/contracts";
 import { DirectListing, EnglishAuction } from "thirdweb/extensions/marketplace";
@@ -26,25 +26,18 @@ export default function NFTComponent({
 }: Props) {
   const router = useRouter();
   const [nft, setNFT] = useState(props.nft);
-  const nftRef = useRef(props.nft);
 
   useEffect(() => {
-    nftRef.current = nft;
-  }, [nft]);
-
-  useEffect(() => {
-    if (!nftRef.current || nftRef.current.id.toString() !== tokenId.toString()) {
+    if (nft?.id !== tokenId) {
       getNFT({
         contract: NFT_COLLECTION,
         tokenId: tokenId,
         includeOwner: true,
-      }).then((fetchedNft) => {
-        setNFT(fetchedNft);
-      }).catch((error) => {
-        console.error("Error fetching NFT:", error);
+      }).then((nft) => {
+        setNFT(nft);
       });
     }
-  }, [tokenId]);
+  }, [tokenId, nft?.id]);
 
   if (!nft) {
     return <LoadingNFTComponent />;
