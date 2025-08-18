@@ -22,46 +22,80 @@ export default function Sell() {
 		if (account) {
 			setLoading(true);
 			console.log("Fetching NFTs for account:", account.address);
-			tokensOfOwner({
-				contract: NFT_COLLECTION,
-				owner: account.address,
-			})
-				.then(async (tokenIds) => {
-					console.log("Found token IDs:", tokenIds);
-					if (tokenIds.length === 0) {
-						console.log("No NFTs found for this account");
-						setOwnedNfts([]);
-						return;
-					}
-					// Fetch the actual NFT data for each owned token
-					const nftPromises = tokenIds.map((tokenId) =>
-						getNFT({
-							contract: NFT_COLLECTION,
-							tokenId: tokenId,
-							includeOwner: true,
-						}).catch((error) => {
-							console.error(`Error fetching NFT ${tokenId}:`, error);
-							return null;
-						})
-					);
-					const nfts = await Promise.all(nftPromises);
-					const validNfts = nfts.filter((nft) => nft !== null) as NFTType[];
-					console.log("Fetched NFTs:", validNfts);
-					setOwnedNfts(validNfts);
-				})
-				.catch((err) => {
-					toast.error(
-						"Something went wrong while fetching your NFTs!",
-						{
-							position: "bottom-center",
-							style: toastStyle,
-						}
-					);
-					console.error("Error fetching owned tokens:", err);
-				})
-				.finally(() => {
+			console.log("NFT Collection address:", NFT_COLLECTION.address);
+			console.log("Client ID available:", !!process.env.NEXT_PUBLIC_TEMPLATE_CLIENT_ID);
+			
+			// Test contract connection first
+			const testContractConnection = async () => {
+				try {
+					// Try to get the contract name to test connection
+					const name = await NFT_COLLECTION.read({ functionName: "name" });
+					console.log("Contract name:", name);
+					return true;
+				} catch (error) {
+					console.error("Contract connection test failed:", error);
+					return false;
+				}
+			};
+			
+			testContractConnection().then((isConnected) => {
+				if (!isConnected) {
+					toast.error("Cannot connect to NFT contract. Please check your network connection.", {
+						position: "bottom-center",
+						style: toastStyle,
+					});
 					setLoading(false);
-				});
+					return;
+				}
+				
+				// Add more detailed error handling
+				tokensOfOwner({
+					contract: NFT_COLLECTION,
+					owner: account.address,
+				})
+					.then(async (tokenIds) => {
+						console.log("Found token IDs:", tokenIds);
+						if (tokenIds.length === 0) {
+							console.log("No NFTs found for this account");
+							setOwnedNfts([]);
+							return;
+						}
+						// Fetch the actual NFT data for each owned token
+						const nftPromises = tokenIds.map((tokenId) =>
+							getNFT({
+								contract: NFT_COLLECTION,
+								tokenId: tokenId,
+								includeOwner: true,
+							}).catch((error) => {
+								console.error(`Error fetching NFT ${tokenId}:`, error);
+								return null;
+							})
+						);
+						const nfts = await Promise.all(nftPromises);
+						const validNfts = nfts.filter((nft) => nft !== null) as NFTType[];
+						console.log("Fetched NFTs:", validNfts);
+						setOwnedNfts(validNfts);
+					})
+					.catch((err) => {
+						console.error("Detailed error fetching owned tokens:", {
+							error: err,
+							message: err.message,
+							stack: err.stack,
+							account: account.address,
+							contract: NFT_COLLECTION.address
+						});
+						toast.error(
+							"Something went wrong while fetching your NFTs!",
+							{
+								position: "bottom-center",
+								style: toastStyle,
+							}
+						);
+					})
+					.finally(() => {
+						setLoading(false);
+					});
+			});
 		} else {
 			setOwnedNfts([]);
 		}
