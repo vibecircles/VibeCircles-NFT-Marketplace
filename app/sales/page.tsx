@@ -136,7 +136,7 @@ export default function Sales() {
           ) : (
             <div className="text-center py-12">
               <div className="text-white/60 text-lg mb-2">
-                You don't own any NFTs yet from this collection.
+                You don&apos;t own any NFTs yet from this collection.
               </div>
               <p className="text-white/40 text-sm">
                 Head to the buy page to purchase some NFTs first!
