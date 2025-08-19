@@ -58,8 +58,15 @@ export default async function TokenPage({
 			a.tokenId === BigInt(params.tokenId)
 	);
 
-	// Format traits for display
-	const traits = nft.metadata.attributes || [];
+	// Define NFT trait type for better type safety
+	type NFTTrait = {
+		trait_type?: string;
+		value?: string | number;
+	};
+
+	// Format traits for display with proper type safety
+	const rawTraits = nft.metadata.attributes;
+	const traits = Array.isArray(rawTraits) ? (rawTraits as NFTTrait[]) : [];
 	const hasTraits = traits.length > 0;
 
 	// Format time for auction
