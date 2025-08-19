@@ -1,10 +1,9 @@
 import { createThirdwebClient } from "thirdweb";
 
 const clientId = process.env.NEXT_PUBLIC_TEMPLATE_CLIENT_ID;
-const secretKey = process.env.TW_SECRET_KEY;
 
 if (!clientId) {
-  throw new Error("Client ID not set");
+  throw new Error("Client ID not set. Please add NEXT_PUBLIC_TEMPLATE_CLIENT_ID to your .env.local file");
 }
 
-export default createThirdwebClient(secretKey ? { secretKey } : { clientId });
+export default createThirdwebClient({ clientId });
