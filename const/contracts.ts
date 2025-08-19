@@ -1,12 +1,13 @@
 import client from "@/lib/client";
 import { getContract } from "thirdweb";
 import { defineChain } from "thirdweb/chains";
+import { FALLBACK_RPC_CONFIG } from "./rpc-config";
 
 /**
  * 1. Set up the network your smart contracts are deployed to.
- * BTTC (BitTorrent Chain) uses chainId 199.
+ * BTTC (BitTorrent Chain) uses chainId 199 with custom RPC.
  */
-export const NETWORK = defineChain(199);
+export const NETWORK = defineChain(FALLBACK_RPC_CONFIG);
 
 /**
  * 2. MarketplaceV3 contract
