@@ -1,47 +1,29 @@
 import client from "@/lib/client";
+/** Replace the values below with the addresses of your smart contracts. */
+
+// 1. Set up the network your smart contracts are deployed to.
+// First, import the chain from the package, then set the NETWORK variable to the chain.
 import { getContract } from "thirdweb";
-import { bttc } from "./chains";
-import { MARKETPLACE_CONTRACTS, getMarketplaceContract } from "./marketplace-contracts";
-import { NFT_COLLECTIONS, getNFTCollection } from "./nft-collections";
+import { defineChain } from "thirdweb/chains";
+export const NETWORK = defineChain(199); // BTTC (chainId 199)
 
-/**
- * Legacy exports for backward compatibility
- * These will use the first marketplace and collection from the new configuration
- */
+// 2. The address of the marketplace V3 smart contract.
+// Deploy your own: https://thirdweb.com/thirdweb.eth/MarketplaceV3
+const MARKETPLACE_ADDRESS = "0x858d7849196CF3c1b2F5456aCFBede24c3636186";
+export const MARKETPLACE = getContract({
+	address: MARKETPLACE_ADDRESS,
+	client,
+	chain: NETWORK,
+});
 
-// Primary marketplace (first one in the list)
-export const MARKETPLACE = getMarketplaceContract(
-  MARKETPLACE_CONTRACTS[0].address,
-  MARKETPLACE_CONTRACTS[0].chain
-);
+// 3. The address of your NFT collection smart contract.
+const NFT_COLLECTION_ADDRESS = "0x55106429E0aAD7007bA00149c14C7D0389811b78";
+export const NFT_COLLECTION = getContract({
+	address: NFT_COLLECTION_ADDRESS,
+	client,
+	chain: NETWORK,
+});
 
-// Primary NFT collection (first one in the list)
-export const NFT_COLLECTION = getNFTCollection(
-  NFT_COLLECTIONS[0].address,
-  NFT_COLLECTIONS[0].chain
-);
-
-// Network (using the primary chain)
-export const NETWORK = bttc;
-
-/**
- * Block explorer URLs for different chains
- */
-export const BLOCK_EXPLORER_URLS = {
-  [bttc.id]: "https://bttcscan.com/",
-  // Add more block explorer URLs as needed
-  // 1: "https://etherscan.io/", // Ethereum
-  // 137: "https://polygonscan.com/", // Polygon
-  // 56: "https://bscscan.com/", // BSC
-  // 43114: "https://snowtrace.io/", // Avalanche
-};
-
-// Legacy export for backward compatibility
-export const ETHERSCAN_URL = BLOCK_EXPLORER_URLS[bttc.id];
-
-/**
- * Helper function to get block explorer URL for a chain
- */
-export function getBlockExplorerUrl(chainId: number): string {
-  return BLOCK_EXPLORER_URLS[chainId] || "https://etherscan.io/";
-}
+// (Optional) Set up the URL of where users can view transactions on
+// For example, below, we use Mumbai.polygonscan to view transactions on the Mumbai testnet.
+export const ETHERSCAN_URL = "https://bttcscan.com/";

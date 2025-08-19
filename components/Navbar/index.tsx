@@ -26,12 +26,6 @@ export function Navbar() {
 							Buy
             </Link>
             <Link
-              href="/sales"
-              className="transition hover:text-white/100"
-            >
-							Sales
-            </Link>
-            <Link
               href="/sell"
               className="transition hover:text-white/100"
             >

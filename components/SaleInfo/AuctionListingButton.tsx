@@ -1,32 +1,29 @@
 "use client";
-import { NFT as NFTType, ThirdwebContract } from "thirdweb";
+import { NFT as NFTType } from "thirdweb";
 import { TransactionButton } from "thirdweb/react";
 import { useRouter } from "next/navigation";
 import { createAuction } from "thirdweb/extensions/marketplace";
+import { MARKETPLACE, NFT_COLLECTION } from "@/const/contracts";
 import toastStyle from "@/util/toastConfig";
 import toast from "react-hot-toast";
 import { revalidatePath } from "next/cache";
-
-type Props = {
-	nft: NFTType;
-	minimumBidAmount: string;
-	buyoutBidAmount: string;
-	marketplaceContract: ThirdwebContract;
-};
 
 export default function AuctionListingButton({
 	nft,
 	minimumBidAmount,
 	buyoutBidAmount,
-	marketplaceContract,
-}: Props) {
+}: {
+	nft: NFTType;
+	minimumBidAmount: string;
+	buyoutBidAmount: string;
+}) {
 	const router = useRouter();
 	return (
 		<TransactionButton
 			transaction={() => {
 				return createAuction({
-					contract: marketplaceContract,
-					assetContractAddress: nft.tokenAddress,
+					contract: MARKETPLACE,
+					assetContractAddress: NFT_COLLECTION.address,
 					tokenId: nft.id,
 					minimumBidAmount,
 					buyoutBidAmount,
@@ -55,7 +52,7 @@ export default function AuctionListingButton({
 					position: "bottom-center",
 				});
 				router.push(
-					`/token/${nft.tokenAddress}/${nft.id.toString()}`
+					`/token/${NFT_COLLECTION.address}/${nft.id.toString()}`
 				);
 			}}
 		>
