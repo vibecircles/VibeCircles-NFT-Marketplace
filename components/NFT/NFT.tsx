@@ -30,16 +30,19 @@ export default function NFTComponent({
   const [nft, setNFT] = useState(props.nft);
   const [loading, setLoading] = useState(!props.nft);
   const [error, setError] = useState<string | null>(null);
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
 
   useEffect(() => {
-    if (nft?.id !== tokenId) {
+    // Only fetch if we don't have the NFT data or if the tokenId has changed
+    if (!nft || nft.id !== tokenId) {
       setLoading(true);
       setError(null);
       
       // Get the contract address from listing or use provided one
       const targetContractAddress = contractAddress || 
         directListing?.assetContractAddress || 
-        auctionListing?.assetContractAddress;
+        auctionListing?.assetContractAddress ||
+        "0x55106429E0aAD7007bA00149c14C7D0389811b78"; // Fallback to primary collection
 
       if (!targetContractAddress) {
         setError("No contract address found");
@@ -51,11 +54,24 @@ export default function NFTComponent({
       // For now, we'll use the first collection's chain as fallback
       const collectionContract = getNFTCollection(targetContractAddress, { id: 199 }); // BTTC chain ID
 
+      console.log("Fetching NFT:", { tokenId: tokenId.toString(), contractAddress: targetContractAddress });
+      
       getNFT({
         contract: collectionContract,
         tokenId: tokenId,
         includeOwner: true,
       }).then((nft) => {
+        console.log("NFT fetched successfully:", nft);
+        console.log("NFT metadata:", nft.metadata);
+        console.log("NFT image URL:", nft.metadata.image);
+        
+        // Try to find the best image URL
+        const imageSrc = nft.metadata.image || 
+                        nft.metadata.image_url || 
+                        nft.metadata.animation_url ||
+                        nft.metadata.external_url;
+        
+        setImageUrl(imageSrc || null);
         setNFT(nft);
         setLoading(false);
       }).catch((err) => {
@@ -95,12 +111,17 @@ export default function NFTComponent({
       }
     >
       <div className="relative w-full h-64 bg-white/[.04]">
-        {nft.metadata.image && (
+        {imageUrl ? (
           <MediaRenderer
-            src={nft.metadata.image}
+            src={imageUrl}
             client={client}
-            className="object-cover object-center"
+            className="object-cover object-center w-full h-full"
+            alt={nft.metadata.name || `NFT #${nft.id}`}
           />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center">
+            <p className="text-white/40 text-sm">No image available</p>
+          </div>
         )}
       </div>
       <div className="flex items-center justify-between flex-1 w-full px-3">

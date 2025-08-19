@@ -50,24 +50,24 @@ export default async function ListingGrid(props: Props) {
 
   // Filter listings and auctions by supported collections
   const filteredListings = allListings.filter(listing =>
-    collectionAddresses.includes(listing.assetContractAddress)
+    collectionAddresses.includes(listing.assetContractAddress as string)
   );
 
   const filteredAuctions = allAuctions.filter(auction =>
-    collectionAddresses.includes(auction.assetContractAddress)
+    collectionAddresses.includes(auction.assetContractAddress as string)
   );
 
   // If chainId is specified, filter by chain
   const finalListings = props.chainId 
     ? filteredListings.filter(listing => {
-        const marketplace = MARKETPLACE_CONTRACTS.find(m => m.address === listing.currencyContractAddress);
+        const marketplace = MARKETPLACE_CONTRACTS.find(m => m.address === listing.currencyContractAddress as string);
         return marketplace?.chain.id === props.chainId;
       })
     : filteredListings;
 
   const finalAuctions = props.chainId 
     ? filteredAuctions.filter(auction => {
-        const marketplace = MARKETPLACE_CONTRACTS.find(m => m.address === auction.currencyContractAddress);
+        const marketplace = MARKETPLACE_CONTRACTS.find(m => m.address === auction.currencyContractAddress as string);
         return marketplace?.chain.id === props.chainId;
       })
     : filteredAuctions;
@@ -81,14 +81,15 @@ export default async function ListingGrid(props: Props) {
   );
 
   const nftData = tokenIds.map((tokenId) => {
+    // Find the listing or auction to get the contract address
+    const listing = finalListings.find((l) => l.tokenId === tokenId);
+    const auction = finalAuctions.find((a) => a.tokenId === tokenId);
+    
     return {
       tokenId: tokenId,
-      directListing: finalListings.find(
-        (listing) => listing.tokenId === tokenId
-      ),
-      auctionListing: finalAuctions.find(
-        (listing) => listing.tokenId === tokenId
-      ),
+      contractAddress: listing?.assetContractAddress || auction?.assetContractAddress,
+      directListing: listing,
+      auctionListing: auction,
     };
   });
 
