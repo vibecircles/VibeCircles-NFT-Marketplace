@@ -173,7 +173,7 @@ export default function Sales() {
               #{selectedNFT.id.toString()}
             </p>
             <p className="text-white/60">
-              You&rsquo;re about to list the following item for sale.
+              You&apos;re about to list the following item for sale.
             </p>
 
             <div className="relative flex flex-col flex-1 py-4 overflow-hidden bg-transparent rounded-lg">
