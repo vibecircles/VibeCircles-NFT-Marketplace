@@ -1,16 +1,21 @@
 import { TransactionButton } from "thirdweb/react";
 import { setApprovalForAll } from "thirdweb/extensions/erc721";
 import toast from "react-hot-toast";
-import { NFT_COLLECTION, MARKETPLACE } from "@/const/contracts";
+import { ThirdwebContract } from "thirdweb";
 import toastStyle from "@/util/toastConfig";
 
-export default function ApprovalButton() {
+type Props = {
+  marketplaceContract: ThirdwebContract;
+  collectionContract: ThirdwebContract;
+};
+
+export default function ApprovalButton({ marketplaceContract, collectionContract }: Props) {
   return (
     <TransactionButton
       transaction={() => {
         return setApprovalForAll({
-          contract: NFT_COLLECTION,
-          operator: MARKETPLACE.address,
+          contract: collectionContract,
+          operator: marketplaceContract.address,
           approved: true,
         });
       }}

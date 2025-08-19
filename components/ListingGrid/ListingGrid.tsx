@@ -4,52 +4,89 @@ import {
 } from "thirdweb/extensions/marketplace";
 import { NFT as NFTType, ThirdwebContract } from "thirdweb";
 import React, { Suspense } from "react";
-import { MARKETPLACE, NFT_COLLECTION } from "../../const/contracts";
+import { MARKETPLACE_CONTRACTS, getAllMarketplaceContracts } from "../../const/marketplace-contracts";
+import { NFT_COLLECTIONS, getAllNFTCollections } from "../../const/nft-collections";
 import NFTGrid, { NFTGridLoading } from "../NFT/NFTGrid";
 
 type Props = {
-	marketplace: ThirdwebContract;
-	collection: ThirdwebContract;
+	marketplace?: ThirdwebContract;
+	collection?: ThirdwebContract;
 	overrideOnclickBehavior?: (nft: NFTType) => void;
 	emptyText: string;
+	chainId?: number; // Optional: filter by specific chain
 };
 
 export default async function ListingGrid(props: Props) {
-  const listingsPromise = getAllValidListings({
-    contract: MARKETPLACE,
-  });
-  const auctionsPromise = getAllValidAuctions({
-    contract: MARKETPLACE,
-  });
+  // If specific marketplace and collection are provided, use them
+  // Otherwise, get all marketplaces and collections
+  const marketplaces = props.marketplace 
+    ? [props.marketplace] 
+    : getAllMarketplaceContracts();
+  
+  const collections = props.collection 
+    ? [props.collection] 
+    : getAllNFTCollections();
 
-  const [listings, auctions] = await Promise.all([
-    listingsPromise,
-    auctionsPromise,
+  // Get all listings and auctions from all marketplaces
+  const allListingsPromises = marketplaces.map(marketplace =>
+    getAllValidListings({ contract: marketplace })
+  );
+  
+  const allAuctionsPromises = marketplaces.map(marketplace =>
+    getAllValidAuctions({ contract: marketplace })
+  );
+
+  const [allListingsResults, allAuctionsResults] = await Promise.all([
+    Promise.all(allListingsPromises),
+    Promise.all(allAuctionsPromises),
   ]);
+
+  // Flatten all listings and auctions
+  const allListings = allListingsResults.flat();
+  const allAuctions = allAuctionsResults.flat();
+
+  // Get collection addresses
+  const collectionAddresses = collections.map(collection => collection.address);
+
+  // Filter listings and auctions by supported collections
+  const filteredListings = allListings.filter(listing =>
+    collectionAddresses.includes(listing.assetContractAddress)
+  );
+
+  const filteredAuctions = allAuctions.filter(auction =>
+    collectionAddresses.includes(auction.assetContractAddress)
+  );
+
+  // If chainId is specified, filter by chain
+  const finalListings = props.chainId 
+    ? filteredListings.filter(listing => {
+        const marketplace = MARKETPLACE_CONTRACTS.find(m => m.address === listing.currencyContractAddress);
+        return marketplace?.chain.id === props.chainId;
+      })
+    : filteredListings;
+
+  const finalAuctions = props.chainId 
+    ? filteredAuctions.filter(auction => {
+        const marketplace = MARKETPLACE_CONTRACTS.find(m => m.address === auction.currencyContractAddress);
+        return marketplace?.chain.id === props.chainId;
+      })
+    : filteredAuctions;
 
   // Retrieve all NFTs from the listings
   const tokenIds = Array.from(
     new Set([
-      ...listings
-        .filter(
-          (l) => l.assetContractAddress === NFT_COLLECTION.address
-        )
-        .map((l) => l.tokenId),
-      ...auctions
-        .filter(
-          (a) => a.assetContractAddress === NFT_COLLECTION.address
-        )
-        .map((a) => a.tokenId),
+      ...finalListings.map((l) => l.tokenId),
+      ...finalAuctions.map((a) => a.tokenId),
     ])
   );
 
   const nftData = tokenIds.map((tokenId) => {
     return {
       tokenId: tokenId,
-      directListing: listings.find(
+      directListing: finalListings.find(
         (listing) => listing.tokenId === tokenId
       ),
-      auctionListing: auctions.find(
+      auctionListing: finalAuctions.find(
         (listing) => listing.tokenId === tokenId
       ),
     };

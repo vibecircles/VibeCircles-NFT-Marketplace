@@ -1,20 +1,23 @@
 "use client";
 import { useRouter } from "next/navigation";
-import { NFT as NFTType } from "thirdweb";
+import { NFT as NFTType, ThirdwebContract } from "thirdweb";
 import { TransactionButton } from "thirdweb/react";
 import { createListing } from "thirdweb/extensions/marketplace";
 import toast from "react-hot-toast";
-import { MARKETPLACE, NFT_COLLECTION } from "@/const/contracts";
 import toastStyle from "@/util/toastConfig";
 import { revalidatePath } from "next/cache";
+
+type Props = {
+	nft: NFTType;
+	pricePerToken: string;
+	marketplaceContract: ThirdwebContract;
+};
 
 export default function DirectListingButton({
 	nft,
 	pricePerToken,
-}: {
-	nft: NFTType;
-	pricePerToken: string;
-}) {
+	marketplaceContract,
+}: Props) {
 	const router = useRouter();
 	return (
 		<TransactionButton
@@ -29,15 +32,15 @@ export default function DirectListingButton({
 				}
 				
 				console.log("Creating listing with:", {
-					contract: MARKETPLACE.address,
-					assetContractAddress: NFT_COLLECTION.address,
+					contract: marketplaceContract.address,
+					assetContractAddress: nft.tokenAddress,
 					tokenId: nft.id.toString(),
 					pricePerToken,
 				});
 				
 				return createListing({
-					contract: MARKETPLACE,
-					assetContractAddress: NFT_COLLECTION.address,
+					contract: marketplaceContract,
+					assetContractAddress: nft.tokenAddress,
 					tokenId: nft.id,
 					pricePerToken,
 				});
@@ -77,7 +80,7 @@ export default function DirectListingButton({
 					position: "bottom-center",
 				});
 				router.push(
-					`/token/${NFT_COLLECTION.address}/${nft.id.toString()}`
+					`/token/${nft.tokenAddress}/${nft.id.toString()}`
 				);
 			}}
 		>

@@ -6,17 +6,7 @@
 export const BTTC_RPC_ENDPOINTS = {
   // Primary RPC endpoints
   primary: "https://rpc.bt.io",
-  secondary: "https://bttc.getblock.io",
-  
-  // Alternative endpoints
-  alternatives: [
-    "https://bttc.publicnode.com",
-    "https://bttc.drpc.org",
-    "https://bttc.meowrpc.com",
-  ],
-  
-  // Testnet endpoints
-  testnet: "https://test-rpc.bittorrentchain.io",
+
 };
 
 /**

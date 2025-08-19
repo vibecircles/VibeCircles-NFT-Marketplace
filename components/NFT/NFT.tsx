@@ -1,16 +1,17 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { NFT } from "thirdweb";
-import { NFT_COLLECTION } from "../../const/contracts";
 import { DirectListing, EnglishAuction } from "thirdweb/extensions/marketplace";
 import { MediaRenderer } from "thirdweb/react";
 import { getNFT } from "thirdweb/extensions/erc721";
 import client from "@/lib/client";
 import Skeleton from "@/components/Skeleton";
 import { useRouter } from "next/navigation";
+import { getNFTCollection } from "@/const/nft-collections";
 
 type Props = {
 	tokenId: bigint;
+	contractAddress?: string; // Optional: if not provided, will use the first collection
 	nft?: NFT;
 	directListing?: DirectListing;
 	auctionListing?: EnglishAuction;
@@ -19,6 +20,7 @@ type Props = {
 
 export default function NFTComponent({
   tokenId,
+  contractAddress,
   directListing,
   auctionListing,
   overrideOnclickBehavior,
@@ -26,21 +28,56 @@ export default function NFTComponent({
 }: Props) {
   const router = useRouter();
   const [nft, setNFT] = useState(props.nft);
+  const [loading, setLoading] = useState(!props.nft);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (nft?.id !== tokenId) {
+      setLoading(true);
+      setError(null);
+      
+      // Get the contract address from listing or use provided one
+      const targetContractAddress = contractAddress || 
+        directListing?.assetContractAddress || 
+        auctionListing?.assetContractAddress;
+
+      if (!targetContractAddress) {
+        setError("No contract address found");
+        setLoading(false);
+        return;
+      }
+
+      // Get the collection contract - we need to determine the chain from the marketplace
+      // For now, we'll use the first collection's chain as fallback
+      const collectionContract = getNFTCollection(targetContractAddress, { id: 199 }); // BTTC chain ID
+
       getNFT({
-        contract: NFT_COLLECTION,
+        contract: collectionContract,
         tokenId: tokenId,
         includeOwner: true,
       }).then((nft) => {
         setNFT(nft);
+        setLoading(false);
+      }).catch((err) => {
+        console.error("Error fetching NFT:", err);
+        setError("Failed to load NFT");
+        setLoading(false);
       });
     }
-  }, [tokenId, nft?.id]);
+  }, [tokenId, nft?.id, contractAddress, directListing?.assetContractAddress, auctionListing?.assetContractAddress]);
 
-  if (!nft) {
+  if (loading) {
     return <LoadingNFTComponent />;
+  }
+
+  if (error || !nft) {
+    return (
+      <div className="w-full h-[350px] rounded-lg bg-white/[.04] border border-white/10 flex items-center justify-center">
+        <p className="text-white/60 text-center">
+          {error || "Failed to load NFT"}
+        </p>
+      </div>
+    );
   }
 
   return (
@@ -52,7 +89,7 @@ export default function NFTComponent({
           : () =>
             router.push(
               `/token/${
-                NFT_COLLECTION.address
+                contractAddress || directListing?.assetContractAddress || auctionListing?.assetContractAddress || nft.tokenAddress
               }/${tokenId.toString()}`
             )
       }

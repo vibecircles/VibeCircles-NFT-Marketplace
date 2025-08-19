@@ -4,7 +4,8 @@ import React, { useState } from "react";
 import { useActiveAccount, useReadContract } from "thirdweb/react";
 import { ADDRESS_ZERO } from "thirdweb";
 import { isApprovedForAll } from "thirdweb/extensions/erc721";
-import { MARKETPLACE, NFT_COLLECTION } from "@/const/contracts";
+import { MARKETPLACE_CONTRACTS, getMarketplaceContract } from "@/const/marketplace-contracts";
+import { getNFTCollection } from "@/const/nft-collections";
 import AuctionListingButton from "./AuctionListingButton";
 import DirectListingButton from "./DirectListingButton";
 import cn from "classnames";
@@ -12,19 +13,29 @@ import ApprovalButton from "./ApproveButton";
 
 type Props = {
 	nft: NFTType;
+	marketplaceAddress?: string; // Optional: specific marketplace to use
 };
 
 const INPUT_STYLES =
 	"block w-full py-3 px-4 mb-4 bg-transparent border border-white text-base box-shadow-md rounded-lg mb-4";
 const LEGEND_STYLES = "mb-2 text-white/80";
-export default function SaleInfo({ nft }: Props) {
+
+export default function SaleInfo({ nft, marketplaceAddress }: Props) {
   const account = useActiveAccount();
   const [tab, setTab] = useState<"direct" | "auction">("direct");
 
+  // Get the marketplace contract to use
+  const marketplaceContract = marketplaceAddress 
+    ? getMarketplaceContract(marketplaceAddress, MARKETPLACE_CONTRACTS[0].chain) // Use first chain as fallback
+    : getMarketplaceContract(MARKETPLACE_CONTRACTS[0].address, MARKETPLACE_CONTRACTS[0].chain);
+
+  // Get the collection contract
+  const collectionContract = getNFTCollection(nft.tokenAddress, { id: 199 }); // BTTC chain ID as fallback
+
   const { data: hasApproval } = useReadContract(isApprovedForAll, {
-    contract: NFT_COLLECTION,
+    contract: collectionContract,
     owner: account?.address || ADDRESS_ZERO,
-    operator: MARKETPLACE.address,
+    operator: marketplaceContract.address,
   });
 
   const [directListingState, setDirectListingState] = useState({
@@ -83,11 +94,12 @@ export default function SaleInfo({ nft }: Props) {
             }
           />
           {!hasApproval ? (
-            <ApprovalButton />
+            <ApprovalButton marketplaceContract={marketplaceContract} collectionContract={collectionContract} />
           ) : (
             <DirectListingButton
               nft={nft}
               pricePerToken={directListingState.price}
+              marketplaceContract={marketplaceContract}
             />
           )}
         </div>
@@ -134,7 +146,7 @@ export default function SaleInfo({ nft }: Props) {
           />
 
           {!hasApproval ? (
-            <ApprovalButton />
+            <ApprovalButton marketplaceContract={marketplaceContract} collectionContract={collectionContract} />
           ) : (
             <AuctionListingButton
               nft={nft}
@@ -142,6 +154,7 @@ export default function SaleInfo({ nft }: Props) {
                 auctionListingState.minimumBidAmount
               }
               buyoutBidAmount={auctionListingState.buyoutPrice}
+              marketplaceContract={marketplaceContract}
             />
           )}
         </div>
