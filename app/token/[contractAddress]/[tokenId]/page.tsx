@@ -66,8 +66,8 @@ export default async function TokenPage({
 
 	// Format traits for display with proper type safety
 	const rawTraits = nft.metadata.attributes;
-	const traits = Array.isArray(rawTraits) ? (rawTraits as NFTTrait[]) : [];
-	const hasTraits = traits.length > 0;
+	const traits: NFTTrait[] = Array.isArray(rawTraits) ? (rawTraits as NFTTrait[]) : [];
+	const hasTraits: boolean = traits.length > 0;
 
 	// Format time for auction
 	const formatTimeLeft = (endTime: Date) => {
